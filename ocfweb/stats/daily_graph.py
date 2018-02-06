@@ -86,25 +86,31 @@ def get_daily_plot(day):
     """Return matplotlib plot representing a day's plot."""
     start, end = get_open_close(day)
     desktops = list_desktops(public_only=True)
+    week = timedelta(days=7)
     profiles = UtilizationProfile.from_hostnames(desktops, start, end).values()
+    lw_profiles = UtilizationProfile.from_hostnames(desktops, start - week, end - week).values()
     desks_count = len(desktops)
 
     now = datetime.now()
     latest = min(end, now)
     minute = timedelta(minutes=1)
     times = [start + i * minute for i in range((latest - start) // minute + 1)]
+    times_full = [start + i * minute for i in range((end - start) // minute + 1)]
     if now >= end or now <= start:
         now = None
     sums = []
-    week = timedelta(days=7)
     lw_sums = []
 
     for t in times:
         instant15 = t + timedelta(seconds=15)
         instant45 = t + timedelta(seconds=45)
         in_use = sum(1 if profile.in_use(instant15) or profile.in_use(instant45) else 0 for profile in profiles)
-        lw_in_use = sum(1 if profile.in_use(instant15 - week) or profile.in_use(instant45 - week) else 0 for profile in profiles)
         sums.append(in_use)
+
+    for t in times_full:
+        instant15 = t + timedelta(seconds=15) - week
+        instant45 = t + timedelta(seconds=45) - week
+        lw_in_use = sum(1 if profile.in_use(instant15) or profile.in_use(instant45) else 0 for profile in lw_profiles)
         lw_sums.append(lw_in_use)
 
     # Do a weighted moving average to smooth out the data
@@ -131,7 +137,7 @@ def get_daily_plot(day):
 
     ax.grid(True)
     ax.plot_date(times, processed, fmt='b-', color='k', linewidth=1.5)
-    ax.plot_date(times, lw_processed, fmt='r-', color='r', linewidth=1.5)
+    ax.plot_date(times_full, lw_processed, fmt='r-', color='r', linewidth=1.5)
 
     # Draw a vertical line, if applicable, showing current time
     if now:
