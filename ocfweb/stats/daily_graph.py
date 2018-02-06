@@ -18,7 +18,8 @@ from ocfweb.component.graph import plot_to_image_bytes
 
 
 # Binomial-shaped weights for moving average
-AVERAGE_WEIGHTS = tuple(zip(range(-2, 3), (n / 16 for n in (1, 4, 6, 4, 1))))
+#AVERAGE_WEIGHTS = tuple(zip(range(-2, 3), (n / 16 for n in (1, 4, 6, 4, 1))))
+AVERAGE_WEIGHTS = tuple(zip(range(-2, 3), (n / 16 for n in (0, 0, 16, 0, 0))))
 
 
 @periodic(60)
@@ -95,12 +96,16 @@ def get_daily_plot(day):
     if now >= end or now <= start:
         now = None
     sums = []
+    week = timedelta(days=7)
+    lw_sums = []
 
     for t in times:
         instant15 = t + timedelta(seconds=15)
         instant45 = t + timedelta(seconds=45)
         in_use = sum(1 if profile.in_use(instant15) or profile.in_use(instant45) else 0 for profile in profiles)
+        lw_in_use = sum(1 if profile.in_use(instant15 - week) or profile.in_use(instant45 - week) else 0 for profile in profiles)
         sums.append(in_use)
+        lw_sums.append(lw_in_use)
 
     # Do a weighted moving average to smooth out the data
     processed = [0] * len(sums)
@@ -115,11 +120,18 @@ def get_daily_plot(day):
             else:
                 processed[i] += weight * sums[m]
 
+    lw_processed = [0] * len(lw_sums)
+    for i in range(len(lw_sums)):
+        for delta_i, weight in AVERAGE_WEIGHTS:
+            m = i if (i + delta_i < 0 or i + delta_i >= len(lw_sums)) else i + delta_i
+            lw_processed[i] += weight * lw_sums[m]
+
     fig = Figure(figsize=(10, 4))
     ax = fig.add_subplot(1, 1, 1)
 
     ax.grid(True)
     ax.plot_date(times, processed, fmt='b-', color='k', linewidth=1.5)
+    ax.plot_date(times, lw_processed, fmt='r-', color='r', linewidth=1.5)
 
     # Draw a vertical line, if applicable, showing current time
     if now:
