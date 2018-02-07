@@ -23,12 +23,12 @@ AVERAGE_WEIGHTS = tuple(zip(range(-2, 3), (n / 16 for n in (0, 0, 16, 0, 0))))
 
 
 @periodic(60)
-def _daily_graph_image(day=None):
+def _daily_graph_image(day=None, lw=True):
     if not day:
         day = date.today()
 
     return HttpResponse(
-        plot_to_image_bytes(get_daily_plot(day), format='svg'),
+        plot_to_image_bytes(get_daily_plot(day, lw), format='svg'),
         content_type='image/svg+xml',
     )
 
