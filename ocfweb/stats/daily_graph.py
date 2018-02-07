@@ -142,8 +142,8 @@ def get_daily_plot(day, lw=True):
 
     ax.grid(True)
     if (lw):
-        ax.plot_date(times_full, lw_processed, fmt='r-', color='r', linewidth=1.5)
-    ax.plot_date(times, processed, fmt='b-', color='k', linewidth=1.5)    
+        ax.plot_date(times_full, lw_processed, fmt='r-', color='r', linewidth=1.5, label='Last Week')
+    ax.plot_date(times, processed, fmt='b-', color='k', linewidth=1.5, label='Current')    
 
     # Draw a vertical line, if applicable, showing current time
     if now:
