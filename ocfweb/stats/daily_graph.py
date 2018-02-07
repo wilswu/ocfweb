@@ -35,6 +35,10 @@ def _daily_graph_image(day=None):
 
 def daily_graph_image(request):
     try:
+        lw = request.GET.get('lw')
+    except ValueError:
+        lw = 1        
+    try:
         day = datetime.strptime(request.GET.get('date', ''), '%Y-%m-%d').date()
     except ValueError:
         day = date.today()
@@ -47,9 +51,9 @@ def daily_graph_image(request):
         ))
 
     if day == date.today():
-        return _daily_graph_image()
+        return _daily_graph_image(lw=lw)
     else:
-        return _daily_graph_image(day=day)
+        return _daily_graph_image(day=day, lw=lw)
 
 
 def get_open_close(day):
@@ -82,7 +86,7 @@ def get_open_close(day):
 
 
 # TODO: caching; we can cache for a long time if it's a day that's already happened
-def get_daily_plot(day):
+def get_daily_plot(day, lw=True):
     """Return matplotlib plot representing a day's plot."""
     start, end = get_open_close(day)
     desktops = list_desktops(public_only=True)
@@ -136,8 +140,9 @@ def get_daily_plot(day):
     ax = fig.add_subplot(1, 1, 1)
 
     ax.grid(True)
-    ax.plot_date(times, processed, fmt='b-', color='k', linewidth=1.5)
-    ax.plot_date(times_full, lw_processed, fmt='r-', color='r', linewidth=1.5)
+    if (lw):
+        ax.plot_date(times_full, lw_processed, fmt='r-', color='r', linewidth=1.5)
+    ax.plot_date(times, processed, fmt='b-', color='k', linewidth=1.5)    
 
     # Draw a vertical line, if applicable, showing current time
     if now:
