@@ -34,10 +34,8 @@ def _daily_graph_image(day=None, lw=True):
 
 
 def daily_graph_image(request):
-    try:
-        lw = request.GET.get('lw')
-    except ValueError:
-        lw = 1        
+    lw = request.GET.get('lw')
+
     try:
         day = datetime.strptime(request.GET.get('date', ''), '%Y-%m-%d').date()
     except ValueError:
@@ -47,7 +45,7 @@ def daily_graph_image(request):
     if request.GET.get('date') != day.isoformat():
         return redirect('{}?{}'.format(
             reverse('daily_graph_image'),
-            urllib.parse.urlencode({'date': day.isoformat()}),
+            urllib.parse.urlencode({'date': day.isoformat(), 'lw': lw}),
         ))
 
     if day == date.today():
