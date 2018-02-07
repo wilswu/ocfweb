@@ -34,7 +34,10 @@ def _daily_graph_image(day=None, lw=True):
 
 
 def daily_graph_image(request):
-    lw = request.GET.get('lw')
+    try:
+        lw = int(request.GET.get('lw'))
+    except ValueError:
+        lw = 0
 
     try:
         day = datetime.strptime(request.GET.get('date', ''), '%Y-%m-%d').date()
