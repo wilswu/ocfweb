@@ -36,7 +36,7 @@ def _daily_graph_image(day=None, lw=True):
 def daily_graph_image(request):
     try:
         lw = int(request.GET.get('lw'))
-    except ValueError:
+    except (ValueError, TypeError) as e:
         lw = 0
 
     try:
